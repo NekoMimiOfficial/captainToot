@@ -179,7 +179,7 @@ def worker(DB: reg.Database):
         for acc in accs:
             MPI= Mastodon(access_token= reg.readCell("captainToot"), api_base_url= acc.i);
             uid= MPI.account_lookup(acct= acc.u)["id"];
-            statuses= MPI.account_statuses(id= uid, min_id= str(int(acc.s) -1));
+            statuses= MPI.account_statuses(id= uid, min_id= acc.s);
             for status in statuses:
                 SD= StatusData();
                 SD.id= status["id"];
@@ -212,7 +212,7 @@ def worker(DB: reg.Database):
                 print("===================================");
 
                 if RQ.status_code == 204:
-                    DB.store(f"acc-s-{acc.index}", SD.id);
+                    DB.store(f"acc-s-{acc.index}", str(SD.id));
 
         time.sleep(10);
     
