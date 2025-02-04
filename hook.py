@@ -8,7 +8,7 @@ from mastodon.internals import requests
 from mastodon.streaming import json
 from markdownify import markdownify as md
 
-__version__= "0.1";
+__version__= "0.2";
 
 class WebHookData:
     def __init__(self):
@@ -53,16 +53,19 @@ def initDB(DB: reg.Database):
         u= DB.query(f"acc-u-{count}");
 
         if reg.readCell("captainToot") == "Registry uninitialized, please use the neko shell to initialize it":
-            ct.kprint("Please add API key using the NekoMimi shell and the cell name \"captainToot\"", "#ff2288");
+            ct.kprint("[Auth Error] Please add API key using the NekoMimi shell and the cell name \"captainToot\"", "#ff2288");
             exit(1);
         if reg.readCell("captainToot").startswith("cell: "):
-            ct.kprint("Please add API key using the NekoMimi shell and the cell name \"captainToot\"", "#ff2288");
+            ct.kprint("[Auth Error] Please add API key using the NekoMimi shell and the cell name \"captainToot\"", "#ff2288");
             exit(1);
         API= Mastodon(api_base_url= i, access_token= reg.readCell("captainToot"));
-        user_id= API.account_lookup(u)["id"];
-        last_status_id= API.account_statuses(id= user_id)[0]["id"];
+        try:
+            user_id= API.account_lookup(u)["id"];
+            last_status_id= API.account_statuses(id= user_id)[0]["id"];
+            DB.store(f"acc-s-{count}", str(last_status_id));
+        except Exception as e:
+            ct.kprint(f"[API Error] failed to initialize DB, failed to lookup user_id: [{u}], err: [{e}]", "#ff2288");
 
-        DB.store(f"acc-s-{count}", str(last_status_id));
         count = count - 1;
 
 class CTIO:
@@ -92,18 +95,21 @@ def _get_acc(DB: reg.Database):
             ct.kprint("Please add API key using the NekoMimi shell and the cell name \"captainToot\"", "#ff2288");
             exit(1);
         API= Mastodon(api_base_url= i, access_token= reg.readCell("captainToot"));
-        url_pfp= API.account_lookup(u)["avatar_static"];
-        full_name= API.account_lookup(u)["display_name"];
+        try:
+            url_pfp= API.account_lookup(u)["avatar_static"];
+            full_name= API.account_lookup(u)["display_name"];
 
-        acc_holder.index= str(count);
-        acc_holder.i= i;
-        acc_holder.u= u;
-        acc_holder.d= d;
-        acc_holder.s= s;
-        acc_holder.icon_url= url_pfp;
-        acc_holder.full_name= full_name;
+            acc_holder.index= str(count);
+            acc_holder.i= i;
+            acc_holder.u= u;
+            acc_holder.d= d;
+            acc_holder.s= s;
+            acc_holder.icon_url= url_pfp;
+            acc_holder.full_name= full_name;
 
-        accounts.append(acc_holder);
+            accounts.append(acc_holder);
+        except Exception as e:
+            ct.kprint(f"[API Error] failed getting account: [{u}], failed to lookup pfp and name, err: [{e}]", "#ff2288");
         count = count - 1;
 
     return accounts;
@@ -170,6 +176,18 @@ class StatusData:
 def _timestampify(tsmf: str)-> str:
     return str(tsmf).split("+", 1)[0].replace(" ", "T")+"Z";
 
+def _bodify(rbod: str)-> str:
+    #truncate to 2000 characters
+    rbod= rbod[:2000];
+    i= 0;
+    bod_lin= rbod.split("\n");
+    #replace h1 style
+    while i < 2000:
+        if bod_lin[i+1] == ("="*len(bod_lin[i])):
+            bod_lin[i]= f"**{bod_lin[i]}**";
+            bod_lin.pop(i+1);
+    return rbod;
+
 def worker(DB: reg.Database):
     if DB.query("acc-s-1") == "":
         initDB(DB);
@@ -178,8 +196,11 @@ def worker(DB: reg.Database):
         accs= _get_acc(DB);
         for acc in accs:
             MPI= Mastodon(access_token= reg.readCell("captainToot"), api_base_url= acc.i);
-            uid= MPI.account_lookup(acct= acc.u)["id"];
-            statuses= MPI.account_statuses(id= uid, min_id= acc.s);
+            try:
+                uid= MPI.account_lookup(acct= acc.u)["id"];
+                statuses= MPI.account_statuses(id= uid, min_id= acc.s);
+            except Exception as e:
+                ct.kprint(f"[API Error] failed getting statuses for account: [{acc.u}], failed to query api for statuses, err: [{e}]", "#ff2288");
             for status in statuses:
                 SD= StatusData();
                 SD.id= status["id"];
@@ -195,7 +216,7 @@ def worker(DB: reg.Database):
                 WD= WebHookData();
                 WD.title= acc.full_name;
                 WD.url= SD.url
-                WD.description= SD.body;
+                WD.description= _bodify(SD.body);
                 WD.icon= acc.icon_url;
                 WD.image= SD.image;
                 WD.timestamp= SD.timestamp;
