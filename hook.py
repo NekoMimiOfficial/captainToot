@@ -42,6 +42,10 @@ def _format_webhook(d: WebHookData):
 
     return json.dumps(content);
 
+def debug_sym(txt: str)-> None:
+    if "--dbg" in sys.argv:
+        print("[DEBUG] "+txt);
+
 def _send_webhook(wh: str, d: WebHookData):
     postRQ= requests.post(url= wh, headers= {"Accept" : "application/json", "Content-Type" : "application/json"}, data= _format_webhook(d));
     return postRQ;
@@ -183,6 +187,7 @@ def _bodify(rbod: str)-> str:
     bod_lin= rbod.split("\n");
     #replace h1 style
     while i < len(rbod)-2:
+        debug_sym(f"[bodify] body length: {len(rbod)}, iterator: {i}");
         if bod_lin[i+1] == ("="*len(bod_lin[i])):
             bod_lin[i]= f"# {bod_lin[i]}";
             bod_lin.pop(i+1);
