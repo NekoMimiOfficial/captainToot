@@ -178,15 +178,20 @@ def _timestampify(tsmf: str)-> str:
 
 def _bodify(rbod: str)-> str:
     #truncate to 2000 characters
-    rbod= rbod[:2000];
+    rbod= rbod[:1998];
     i= 0;
     bod_lin= rbod.split("\n");
     #replace h1 style
-    while i < 2000:
+    while i < 1998:
         if bod_lin[i+1] == ("="*len(bod_lin[i])):
-            bod_lin[i]= f"**{bod_lin[i]}**";
+            bod_lin[i]= f"# {bod_lin[i]}";
             bod_lin.pop(i+1);
-    return rbod;
+
+        i= i + 1
+    rbod_f= ""
+    for line in bod_lin:
+        rbod_f= line + "\n"
+    return rbod_f;
 
 def worker(DB: reg.Database):
     if DB.query("acc-s-1") == "":
@@ -201,6 +206,7 @@ def worker(DB: reg.Database):
                 statuses= MPI.account_statuses(id= uid, min_id= acc.s);
             except Exception as e:
                 ct.kprint(f"[API Error] failed getting statuses for account: [{acc.u}], failed to query api for statuses, err: [{e}]", "#ff2288");
+                statuses= []
             for status in statuses:
                 SD= StatusData();
                 SD.id= status["id"];
