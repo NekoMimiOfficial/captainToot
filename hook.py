@@ -189,8 +189,9 @@ def _bodify(rbod: str)-> str:
     while i < len(rbod)-2:
         debug_sym(f"[bodify] body length: {len(rbod)}, lines: {len(bod_lin)}, iterator: {i}");
         if bod_lin[i+1] == ("="*len(bod_lin[i])):
-            bod_lin[i]= f"# {bod_lin[i]}";
-            bod_lin.pop(i+1);
+            debug_sym(f"[bodify] removing line: {i}, head: '{bod_lin[i]}, decoration: '{bod_lin[i+1]}'")
+            bod_lin[i]= f"# {bod_lin[i]}"
+            bod_lin.pop(i+1)
 
         i= i + 1
     rbod_f= ""
