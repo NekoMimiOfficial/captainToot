@@ -187,7 +187,7 @@ def _bodify(rbod: str)-> str:
     bod_lin= rbod.split("\n");
     #replace h1 style
     while i < len(rbod)-2:
-        debug_sym(f"[bodify] body length: {len(rbod)}, iterator: {i}");
+        debug_sym(f"[bodify] body length: {len(rbod)}, lines: {len(bod_lin)}, iterator: {i}");
         if bod_lin[i+1] == ("="*len(bod_lin[i])):
             bod_lin[i]= f"# {bod_lin[i]}";
             bod_lin.pop(i+1);
