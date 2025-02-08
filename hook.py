@@ -182,7 +182,7 @@ def _bodify(rbod: str)-> str:
     i= 0;
     bod_lin= rbod.split("\n");
     #replace h1 style
-    while i < len(rbod)-1:
+    while i < len(rbod)-2:
         if bod_lin[i+1] == ("="*len(bod_lin[i])):
             bod_lin[i]= f"# {bod_lin[i]}";
             bod_lin.pop(i+1);
