@@ -198,7 +198,7 @@ def _bodify(rbod: str)-> str:
         i= i + 1
     rbod_f= ""
     for line in bod_lin:
-        rbod_f= line + "\n"
+        rbod_f= rbod_f + line + "\n"
     return rbod_f;
 
 def worker(DB: reg.Database):
