@@ -8,7 +8,7 @@ from mastodon.internals import requests
 from mastodon.streaming import json
 from markdownify import markdownify as md
 
-__version__= "0.2";
+__version__= "0.3";
 
 class WebHookData:
     def __init__(self):
@@ -187,13 +187,13 @@ def _bodify(rbod: str)-> str:
     bod_lin= rbod.split("\n");
     debug_sym("[bodify] body:\n"+str(bod_lin));
     #replace h1 style
-    while i < (len(bod_lin)-3):
+    while i < (len(bod_lin)-1):
         debug_sym(f"[bodify] body length: {len(rbod)}, lines: {len(bod_lin)}, iterator: {i}");
         if bod_lin[i+1].startswith("="):
             if bod_lin[i+1] == ("="*len(bod_lin[i])):
-                debug_sym(f"[bodify] removing line: {i}, head: '{bod_lin[i]}, decoration: '{bod_lin[i+1]}'")
-                bod_lin[i]= f"# {bod_lin[i]}"
-                bod_lin.pop(i+1)
+                debug_sym(f"[bodify] removing line: {i}, head: '{bod_lin[i]}, decoration: '{bod_lin[i+1]}'");
+                bod_lin[i]= f"# {bod_lin[i]}";
+                bod_lin.pop(i+1);
 
         i= i + 1
     rbod_f= ""
