@@ -195,10 +195,10 @@ def _bodify(rbod: str)-> str:
                 bod_lin[i]= f"# {bod_lin[i]}";
                 bod_lin.pop(i+1);
 
-        i= i + 1
+        i= i + 1;
     rbod_f= ""
     for line in bod_lin:
-        rbod_f= rbod_f + line + "\n"
+        rbod_f= rbod_f + line + "\n";
     return rbod_f;
 
 def worker(DB: reg.Database):
